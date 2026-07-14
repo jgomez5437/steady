@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steady</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EEF2F0;
+    --surface: #FFFFFF;
+    --surface-alt: #E4EBE7;
+    --border: #D6E1DB;
+    --ink: #2B3B38;
+    --ink-muted: #6C7A77;
+    --teal: #3E7C74;
+    --gold: #C9A66B;
+    --periwinkle: #7C8CC4;
+    --plum: #9B6B8C;
+    --low-soft: #6E93B8;
+    --high-soft: #B97A76;
+    --radius: 14px;
+    --shadow: 0 2px 14px rgba(43, 59, 56, 0.07);
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .brand h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 32px;
+    margin: 0;
+    letter-spacing: -0.02px;
+  }
+
+  .brand span {
+    color: var(--ink-muted);
+    font-size: 13px;
+  }
+
+  nav.tabs {
+    display: flex;
+    background: var(--surface-alt);
+    border-radius: 999px;
+    padding: 4px;
+    gap: 2px;
+  }
+
+  nav.tabs button {
+    border: none;
+    background: transparent;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--ink-muted);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  nav.tabs button[aria-selected="true"] {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+
+  nav.tabs button:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .card h2 {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  .card .sub {
+    color: var(--ink-muted);
+    font-size: 13px;
+    margin: 0 0 16px;
+  }
+
+  .chart-empty {
+    text-align: center;
+    padding: 30px 10px 10px;
+    color: var(--ink-muted);
+    font-size: 14px;
+  }
+
+  svg#tideChart {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .chart-grid { stroke: var(--border); stroke-width: 1; stroke-dasharray: 2 4; }
+  .chart-label { font-family: var(--font-mono); font-size: 10px; fill: var(--ink-muted); }
+  .chart-line { fill: none; stroke: var(--teal); stroke-width: 2.5; stroke-linecap: round; }
+  .chart-area {
+    fill: url(#tideGradient);
+    animation: tideBreathe 7s ease-in-out infinite alternate;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chart-area { animation: none; }
+  }
+  @keyframes tideBreathe {
+    from { opacity: 0.75; }
+    to { opacity: 1; }
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+
+  .legend span.dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  form.reading-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; color: var(--ink-muted); font-weight: 500; }
+
+  input, select, textarea {
+    font-family: var(--font-body);
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  input[type="number"] { width: 130px; font-family: var(--font-mono); }
+
+  .field.grow { flex: 1; min-width: 160px; }
+
+  button.primary {
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  button.primary:hover { opacity: 0.9; }
+
+  .error-msg {
+    color: var(--high-soft);
+    font-size: 12px;
+    min-height: 16px;
+  }
+
+  details.targets summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--ink-muted);
+    font-weight: 500;
+    list-style: none;
+  }
+  details.targets summary::-webkit-details-marker { display: none; }
+  details.targets summary::before { content: "Adjust target range "; }
+  details.targets[open] summary::before { content: "Hide target range "; }
+  details.targets .targets-body {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  details.targets .note {
+    color: var(--ink-muted);
+    font-size: 12px;
+    margin-top: 10px;
+  }
+
+  ul.reading-list { list-style: none; margin: 0; padding: 0; }
+  ul.reading-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  ul.reading-list li:last-child { border-bottom: none; }
+
+  .meal-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    min-width: 92px;
+  }
+  .meal-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .reading-time { color: var(--ink-muted); font-size: 12px; min-width: 78px; }
+  .reading-value { font-family: var(--font-mono); font-weight: 500; margin-left: auto; }
+  .status-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    color: #fff;
+    margin-left: 10px;
+  }
+
+  form.recipe-form { display: flex; flex-direction: column; gap: 12px; }
+  form.recipe-form textarea { resize: vertical; min-height: 60px; font-family: var(--font-body); }
+
+  .recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .recipe-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .recipe-card a {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .recipe-card a:hover { text-decoration: underline; }
+  .recipe-card .host { font-size: 11px; color: var(--ink-muted); }
+  .recipe-card p { font-size: 13px; color: var(--ink-muted); margin: 4px 0 0; }
+  .recipe-card .row-actions { margin-top: 8px; display: flex; justify-content: flex-end; }
+  .recipe-card button.delete {
+    border: none;
+    background: none;
+    color: var(--high-soft);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 6px;
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .banner {
+    background: #FBF3E7;
+    border: 1px solid #E4D3B0;
+    color: #7A5B2E;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  footer {
+    margin-top: 30px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 560px) {
+    .brand h1 { font-size: 26px; }
+    input[type="number"] { width: 100px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <h1>Steady</h1>
+      <span>track your glucose with clarity</span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button id="tab-track" role="tab" aria-selected="true" aria-controls="view-track">Track</button>
+      <button id="tab-recipes" role="tab" aria-selected="false" aria-controls="view-recipes">Recipes</button>
+    </nav>
+  </header>
+
+  <div class="banner" id="storageBanner" style="display:none;" role="status"></div>
+
+  <section id="view-track" class="view active">
+
+    <div class="card">
+      <h2 id="today-heading">Today</h2>
+      <p class="sub">Readings reset here each day. Everything you log stays saved underneath.</p>
+      <svg id="tideChart" viewBox="0 0 600 220" role="img" aria-label="Today's glucose readings over time">
+        <defs>
+          <linearGradient id="tideGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3E7C74" stop-opacity="0.30" />
+            <stop offset="100%" stop-color="#3E7C74" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div id="chartEmpty" class="chart-empty">No readings yet today. Log one below and it will appear here.</div>
+      <div class="legend">
+        <span><span class="dot" style="background:#3E7C74"></span>Fasting</span>
+        <span><span class="dot" style="background:#C9A66B"></span>Breakfast</span>
+        <span><span class="dot" style="background:#7C8CC4"></span>Lunch</span>
+        <span><span class="dot" style="background:#9B6B8C"></span>Dinner</span>
+        <span><span class="dot" style="background:#3E7C74; opacity:0.35"></span><span id="targetLegendText">Target range</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Log a reading</h2>
+      <p class="sub">The day and time are captured automatically.</p>
+      <form class="reading-form" id="readingForm">
+        <div class="field">
+          <label for="valueInput">Reading, mg/dL</label>
+          <input type="number" id="valueInput" min="20" max="600" step="1" required placeholder="110">
+        </div>
+        <div class="field grow">
+          <label for="mealSelect">When</label>
+          <select id="mealSelect" required>
+            <option value="fasting">Fasting</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+          </select>
+        </div>
+        <div class="field">
+          <button type="submit" class="primary">Log reading</button>
+        </div>
+      </form>
+      <div class="error-msg" id="readingError" role="alert"></div>
+
+      <details class="targets">
+        <summary></summary>
+        <div class="targets-body">
+          <div class="field">
+            <label for="lowInput">Low, mg/dL</label>
+            <input type="number" id="lowInput" min="20" max="400">
+          </div>
+          <div class="field">
+            <label for="highInput">High, mg/dL</label>
+            <input type="number" id="highInput" min="20" max="400">
+          </div>
+          <div class="field">
+            <button type="button" class="primary" id="saveTargets">Save range</button>
+          </div>
+        </div>
+        <p class="note">This is a general reference range, not medical advice. Use the numbers your own care team has given you.</p>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Today's readings</h2>
+      <ul class="reading-list" id="readingList"></ul>
+      <p class="sub" id="listEmpty" style="display:none; margin-top:10px;">Nothing logged yet today.</p>
+    </div>
+
+  </section>
+
+  <section id="view-recipes" class="view">
+
+    <div class="card">
+      <h2>Save a recipe</h2>
+      <p class="sub">Keep a running list of meals you like coming back to.</p>
+      <form class="recipe-form" id="recipeForm">
+        <div class="field grow">
+          <label for="recipeTitle">Title</label>
+          <input type="text" id="recipeTitle" required placeholder="Sheet pan salmon and greens">
+        </div>
+        <div class="field grow">
+          <label for="recipeUrl">Link</label>
+          <input type="url" id="recipeUrl" required placeholder="https://example.com/recipe">
+        </div>
+        <div class="field grow">
+          <label for="recipeNotes">Notes, optional</label>
+          <textarea id="recipeNotes" placeholder="Swap rice for cauliflower rice"></textarea>
+        </div>
+        <div class="field">
+          <button type="submit" class="primary">Save recipe</button>
+        </div>
+      </form>
+      <div class="error-msg" id="recipeError" role="alert"></div>
+    </div>
+
+    <div class="card">
+      <h2>Saved recipes</h2>
+      <div class="recipe-grid" id="recipeGrid"></div>
+      <p class="sub" id="recipeEmpty" style="display:none;">No recipes saved yet. Add a link above to start your list.</p>
+    </div>
+
+  </section>
+
+  <footer>
+    Steady keeps everything on this device using local storage in this browser. Nothing is sent anywhere.<br>
+    Reference ranges shown are general guidelines only, not medical advice.
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEYS = {
+    readings: 'steady_readings',
+    recipes: 'steady_recipes',
+    targets: 'steady_targets'
+  };
+
+  /* -----------------------------------------------------------------
+     Storage layer, step one: feature detect real localStorage. Some
+     sandboxed previews block it entirely, so writes fall back to an
+     in-memory object instead of throwing and silently breaking the
+     rest of the page. A banner tells the person when this happens.
+  ----------------------------------------------------------------- */
+  var memoryFallback = {};
+  var storageAvailable = (function () {
+    try {
+      var testKey = '__steady_test__';
+      window.localStorage.setItem(testKey, '1');
+      window.localStorage.removeItem(testKey);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  })();
+
+  function storageGet(key) {
+    if (storageAvailable) {
+      try { return localStorage.getItem(key); } catch (e) { /* fall through */ }
+    }
+    return Object.prototype.hasOwnProperty.call(memoryFallback, key) ? memoryFallback[key] : null;
+  }
+
+  function storageSet(key, value) {
+    if (storageAvailable) {
+      try { localStorage.setItem(key, value); return; } catch (e) { /* fall through */ }
+    }
+    memoryFallback[key] = value;
+  }
+
+  /* -----------------------------------------------------------------
+     Data layer, step two. When a backend is ready, swap the body of
+     each method below for a fetch() call to your API and keep the
+     method names the same, nothing outside this block needs to change.
+  ----------------------------------------------------------------- */
+  var SteadyStore = {
+    getReadings: function () {
+      try {
+        return JSON.parse(storageGet(STORAGE_KEYS.readings)) || [];
+      } catch (e) {
+        return [];
+      }
+    },
+    saveReadings: function (readings) {
+      storageSet(STORAGE_KEYS.readings, JSON.stringify(readings));
+    },
+    addReading: function (reading) {
+      var readings = this.getReadings();
+      readings.push(reading);
+      this.saveReadings(readings);
+      return readings;
+    },
+    getRecipes: function () {
+      try {
+        return JSON.parse(storageGet(STORAGE_KEYS.recipes)) || [];
+      } catch (e) {
+        return [];
+      }
+    },
+    saveRecipes: function (recipes) {
+      storageSet(STORAGE_KEYS.recipes, JSON.stringify(recipes));
+    },
+    addRecipe: function (recipe) {
+      var recipes = this.getRecipes();
+      recipes.push(recipe);
+      this.saveRecipes(recipes);
+      return recipes;
+    },
+    deleteRecipe: function (id) {
+      var recipes = this.getRecipes().filter(function (r) { return r.id !== id; });
+      this.saveRecipes(recipes);
+      return recipes;
+    },
+    getTargets: function () {
+      try {
+        var t = JSON.parse(storageGet(STORAGE_KEYS.targets));
+        if (t && typeof t.low === 'number' && typeof t.high === 'number') return t;
+        return { low: 70, high: 140 };
+      } catch (e) {
+        return { low: 70, high: 140 };
+      }
+    },
+    saveTargets: function (targets) {
+      storageSet(STORAGE_KEYS.targets, JSON.stringify(targets));
+    }
+  };
+
+  var MEAL_META = {
+    fasting: { label: 'Fasting', color: '#3E7C74' },
+    breakfast: { label: 'Breakfast', color: '#C9A66B' },
+    lunch: { label: 'Lunch', color: '#7C8CC4' },
+    dinner: { label: 'Dinner', color: '#9B6B8C' }
+  };
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function formatTime(date) {
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function isSameDay(ts, ref) {
+    var a = new Date(ts), b = ref;
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  }
+
+  function computeStatus(value, targets) {
+    if (value < targets.low) return { label: 'Low', color: 'var(--low-soft)' };
+    if (value > targets.high) return { label: 'High', color: 'var(--high-soft)' };
+    return { label: 'In range', color: 'var(--teal)' };
+  }
+
+  /* ---------------------------- Tabs ---------------------------- */
+  var tabTrack = document.getElementById('tab-track');
+  var tabRecipes = document.getElementById('tab-recipes');
+  var viewTrack = document.getElementById('view-track');
+  var viewRecipes = document.getElementById('view-recipes');
+
+  function selectTab(which) {
+    var trackOn = which === 'track';
+    tabTrack.setAttribute('aria-selected', trackOn ? 'true' : 'false');
+    tabRecipes.setAttribute('aria-selected', trackOn ? 'false' : 'true');
+    viewTrack.classList.toggle('active', trackOn);
+    viewRecipes.classList.toggle('active', !trackOn);
+  }
+  tabTrack.addEventListener('click', function () { selectTab('track'); });
+  tabRecipes.addEventListener('click', function () { selectTab('recipes'); });
+
+  /* ---------------------------- Chart ---------------------------- */
+  var svg = document.getElementById('tideChart');
+  var chartEmpty = document.getElementById('chartEmpty');
+
+  function xForHour(h, padL, padR, W) {
+    return padL + (h / 24) * (W - padL - padR);
+  }
+
+  function yForValue(v, chartMin, chartMax, padT, padB, H) {
+    var clamped = Math.min(chartMax, Math.max(chartMin, v));
+    var t = (clamped - chartMin) / (chartMax - chartMin);
+    return (H - padB) - t * (H - padT - padB);
+  }
+
+  function smoothPath(points) {
+    if (points.length === 1) return '';
+    if (points.length === 2) {
+      return 'M ' + points[0].x + ' ' + points[0].y + ' L ' + points[1].x + ' ' + points[1].y;
+    }
+    var d = 'M ' + points[0].x + ' ' + points[0].y;
+    for (var i = 0; i < points.length - 1; i++) {
+      var p0 = points[i - 1] || points[i];
+      var p1 = points[i];
+      var p2 = points[i + 1];
+      var p3 = points[i + 2] || p2;
+      var cp1x = p1.x + (p2.x - p0.x) / 6;
+      var cp1y = p1.y + (p2.y - p0.y) / 6;
+      var cp2x = p2.x - (p3.x - p1.x) / 6;
+      var cp2y = p2.y - (p3.y - p1.y) / 6;
+      d += ' C ' + cp1x + ' ' + cp1y + ', ' + cp2x + ' ' + cp2y + ', ' + p2.x + ' ' + p2.y;
+    }
+    return d;
+  }
+
+  function buildChart(readingsToday, targets) {
+    var ns = 'http://www.w3.org/2000/svg';
+    var W = 600, H = 220;
+    var padL = 46, padR = 18, padT = 18, padB = 30;
+    var chartMin = 40, chartMax = 300;
+
+    Array.prototype.forEach.call(svg.querySelectorAll(':scope > *:not(defs)'), function (el) { el.remove(); });
+
+    chartEmpty.style.display = readingsToday.length ? 'none' : 'block';
+    svg.style.display = readingsToday.length ? 'block' : 'none';
+
+    if (!readingsToday.length) return;
+
+    var bandTop = yForValue(targets.high, chartMin, chartMax, padT, padB, H);
+    var bandBottom = yForValue(targets.low, chartMin, chartMax, padT, padB, H);
+    var band = document.createElementNS(ns, 'rect');
+    band.setAttribute('x', padL);
+    band.setAttribute('y', bandTop);
+    band.setAttribute('width', W - padL - padR);
+    band.setAttribute('height', Math.max(0, bandBottom - bandTop));
+    band.setAttribute('rx', 4);
+    band.setAttribute('fill', '#3E7C74');
+    band.setAttribute('opacity', '0.10');
+    svg.appendChild(band);
+
+    [targets.low, targets.high].forEach(function (v) {
+      var label = document.createElementNS(ns, 'text');
+      label.setAttribute('x', padL - 8);
+      label.setAttribute('y', yForValue(v, chartMin, chartMax, padT, padB, H) + 4);
+      label.setAttribute('text-anchor', 'end');
+      label.setAttribute('class', 'chart-label');
+      label.textContent = v;
+      svg.appendChild(label);
+    });
+
+    [0, 6, 12, 18, 24].forEach(function (h) {
+      var x = xForHour(h, padL, padR, W);
+      var line = document.createElementNS(ns, 'line');
+      line.setAttribute('x1', x); line.setAttribute('x2', x);
+      line.setAttribute('y1', padT); line.setAttribute('y2', H - padB);
+      line.setAttribute('class', 'chart-grid');
+      svg.appendChild(line);
+      if (h < 24) {
+        var t = document.createElementNS(ns, 'text');
+        t.setAttribute('x', x); t.setAttribute('y', H - 10);
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('class', 'chart-label');
+        t.textContent = h === 0 ? '12a' : (h === 6 ? '6a' : (h === 12 ? '12p' : '6p'));
+        svg.appendChild(t);
+      }
+    });
+
+    var sorted = readingsToday.slice().sort(function (a, b) { return a.timestamp - b.timestamp; });
+    var points = sorted.map(function (r) {
+      var d = new Date(r.timestamp);
+      var hour = d.getHours() + d.getMinutes() / 60;
+      return { x: xForHour(hour, padL, padR, W), y: yForValue(r.value, chartMin, chartMax, padT, padB, H), r: r };
+    });
+
+    if (points.length > 1) {
+      var linePath = smoothPath(points);
+      var areaPath = linePath + ' L ' + points[points.length - 1].x + ' ' + (H - padB) + ' L ' + points[0].x + ' ' + (H - padB) + ' Z';
+      var area = document.createElementNS(ns, 'path');
+      area.setAttribute('d', areaPath);
+      area.setAttribute('class', 'chart-area');
+      svg.appendChild(area);
+
+      var line2 = document.createElementNS(ns, 'path');
+      line2.setAttribute('d', linePath);
+      line2.setAttribute('class', 'chart-line');
+      svg.appendChild(line2);
+    }
+
+    points.forEach(function (p) {
+      var dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('cx', p.x);
+      dot.setAttribute('cy', p.y);
+      dot.setAttribute('r', 5);
+      dot.setAttribute('fill', MEAL_META[p.r.mealType].color);
+      dot.setAttribute('stroke', '#fff');
+      dot.setAttribute('stroke-width', '2');
+      var title = document.createElementNS(ns, 'title');
+      title.textContent = formatTime(new Date(p.r.timestamp)) + ' ' + MEAL_META[p.r.mealType].label + ' ' + p.r.value + ' mg/dL';
+      dot.appendChild(title);
+      svg.appendChild(dot);
+    });
+  }
+
+  /* ------------------------- Render: Track ------------------------- */
+  var todayHeading = document.getElementById('today-heading');
+  var readingList = document.getElementById('readingList');
+  var listEmpty = document.getElementById('listEmpty');
+  var targetLegendText = document.getElementById('targetLegendText');
+  var lowInput = document.getElementById('lowInput');
+  var highInput = document.getElementById('highInput');
+
+  function renderTrack() {
+    var now = new Date();
+    todayHeading.textContent = 'Today, ' + now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+    var targets = SteadyStore.getTargets();
+    lowInput.value = targets.low;
+    highInput.value = targets.high;
+    targetLegendText.textContent = 'Target ' + targets.low + ' to ' + targets.high + ' mg/dL';
+
+    var readingsToday = SteadyStore.getReadings().filter(function (r) { return isSameDay(r.timestamp, now); });
+
+    buildChart(readingsToday, targets);
+
+    var sortedDesc = readingsToday.slice().sort(function (a, b) { return b.timestamp - a.timestamp; });
+    readingList.innerHTML = '';
+    listEmpty.style.display = sortedDesc.length ? 'none' : 'block';
+
+    sortedDesc.forEach(function (r) {
+      var li = document.createElement('li');
+      var meta = MEAL_META[r.mealType];
+      var status = computeStatus(r.value, targets);
+
+      var timeSpan = document.createElement('span');
+      timeSpan.className = 'reading-time';
+      timeSpan.textContent = formatTime(new Date(r.timestamp));
+
+      var pill = document.createElement('span');
+      pill.className = 'meal-pill';
+      var dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.background = meta.color;
+      pill.appendChild(dot);
+      pill.appendChild(document.createTextNode(meta.label));
+
+      var value = document.createElement('span');
+      value.className = 'reading-value';
+      value.textContent = r.value + ' mg/dL';
+
+      var tag = document.createElement('span');
+      tag.className = 'status-tag';
+      tag.style.background = status.color;
+      tag.textContent = status.label;
+
+      li.appendChild(timeSpan);
+      li.appendChild(pill);
+      li.appendChild(value);
+      li.appendChild(tag);
+      readingList.appendChild(li);
+    });
+  }
+
+  var readingForm = document.getElementById('readingForm');
+  var valueInput = document.getElementById('valueInput');
+  var mealSelect = document.getElementById('mealSelect');
+
+  function defaultMealTypeFor(date) {
+    var hour = date.getHours() + date.getMinutes() / 60;
+    if (hour >= 5 && hour < 8) return 'fasting';
+    if (hour >= 8 && hour < 10) return 'breakfast';
+    if (hour >= 10 && hour < 15) return 'lunch';
+    if (hour >= 15 && hour < 22) return 'dinner';
+    return 'fasting';
+  }
+  var readingError = document.getElementById('readingError');
+
+  readingForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    readingError.textContent = '';
+    var value = Number(valueInput.value);
+    if (!valueInput.value || isNaN(value) || value < 20 || value > 600) {
+      readingError.textContent = 'Enter a number between 20 and 600.';
+      return;
+    }
+    SteadyStore.addReading({
+      id: uid(),
+      value: value,
+      mealType: mealSelect.value,
+      timestamp: Date.now()
+    });
+    valueInput.value = '';
+    valueInput.focus();
+    mealSelect.value = defaultMealTypeFor(new Date());
+    renderTrack();
+  });
+
+  document.getElementById('saveTargets').addEventListener('click', function () {
+    var low = Number(lowInput.value);
+    var high = Number(highInput.value);
+    if (isNaN(low) || isNaN(high) || low >= high) {
+      readingError.textContent = 'Low must be a smaller number than high.';
+      return;
+    }
+    SteadyStore.saveTargets({ low: low, high: high });
+    readingError.textContent = '';
+    renderTrack();
+  });
+
+  /* ------------------------- Render: Recipes ------------------------- */
+  var recipeForm = document.getElementById('recipeForm');
+  var recipeTitle = document.getElementById('recipeTitle');
+  var recipeUrl = document.getElementById('recipeUrl');
+  var recipeNotes = document.getElementById('recipeNotes');
+  var recipeError = document.getElementById('recipeError');
+  var recipeGrid = document.getElementById('recipeGrid');
+  var recipeEmpty = document.getElementById('recipeEmpty');
+
+  function hostnameOf(url) {
+    try {
+      return new URL(url).hostname.replace('www.', '');
+    } catch (e) {
+      return url;
+    }
+  }
+
+  function renderRecipes() {
+    var recipes = SteadyStore.getRecipes().slice().sort(function (a, b) { return b.addedAt - a.addedAt; });
+    recipeGrid.innerHTML = '';
+    recipeEmpty.style.display = recipes.length ? 'none' : 'block';
+
+    recipes.forEach(function (r) {
+      var card = document.createElement('div');
+      card.className = 'recipe-card';
+
+      var link = document.createElement('a');
+      link.href = r.url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = r.title;
+
+      var host = document.createElement('div');
+      host.className = 'host';
+      host.textContent = hostnameOf(r.url);
+
+      card.appendChild(link);
+      card.appendChild(host);
+
+      if (r.notes) {
+        var p = document.createElement('p');
+        p.textContent = r.notes;
+        card.appendChild(p);
+      }
+
+      var actions = document.createElement('div');
+      actions.className = 'row-actions';
+      var del = document.createElement('button');
+      del.className = 'delete';
+      del.type = 'button';
+      del.textContent = 'Delete';
+      del.addEventListener('click', function () {
+        if (del.textContent === 'Delete') {
+          del.textContent = 'Click again to confirm';
+          setTimeout(function () {
+            if (del.textContent === 'Click again to confirm') del.textContent = 'Delete';
+          }, 4000);
+        } else {
+          SteadyStore.deleteRecipe(r.id);
+          renderRecipes();
+        }
+      });
+      actions.appendChild(del);
+      card.appendChild(actions);
+
+      recipeGrid.appendChild(card);
+    });
+  }
+
+  recipeForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    recipeError.textContent = '';
+    var title = recipeTitle.value.trim();
+    var url = recipeUrl.value.trim();
+    if (!title || !url) {
+      recipeError.textContent = 'A title and a link are both needed.';
+      return;
+    }
+    try {
+      new URL(url);
+    } catch (e) {
+      recipeError.textContent = 'That link does not look complete. Include https colon slash slash.';
+      return;
+    }
+    SteadyStore.addRecipe({
+      id: uid(),
+      title: title,
+      url: url,
+      notes: recipeNotes.value.trim(),
+      addedAt: Date.now()
+    });
+    recipeTitle.value = '';
+    recipeUrl.value = '';
+    recipeNotes.value = '';
+    renderRecipes();
+  });
+
+  /* ------------------------------ Init ------------------------------ */
+  mealSelect.value = defaultMealTypeFor(new Date());
+  if (!storageAvailable) {
+    var banner = document.getElementById('storageBanner');
+    banner.style.display = 'block';
+    banner.textContent = 'Local storage is not reachable in this preview, so entries will only last for this browsing session. Download the file and open it directly in a browser, or host it, and everything will save between visits.';
+  }
+  renderTrack();
+  renderRecipes();
+
+}());
+</script>
+</body>
+</html>
