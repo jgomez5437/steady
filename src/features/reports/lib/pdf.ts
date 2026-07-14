@@ -2,7 +2,8 @@ import { jsPDF } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
 import type { Reading, TargetRange } from '../../tracking/types';
 import { formatTime } from '../../tracking/lib/dateUtils';
-import type { DateRange, ReportSummary } from './reportData';
+import type { DateRange } from '../../../shared/lib/dateRange';
+import type { ReportSummary } from './reportData';
 
 const MEAL_LABELS: Record<Reading['mealType'], string> = {
   fasting: 'Fasting',

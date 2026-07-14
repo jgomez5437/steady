@@ -3,6 +3,7 @@ import { TideChart } from './components/TideChart';
 import { ReadingForm } from './components/ReadingForm';
 import { ReadingList } from './components/ReadingList';
 import { TargetRangeEditor } from './components/TargetRangeEditor';
+import { HistoryView } from './HistoryView';
 import { getReadings, addReading } from './store/readingsStore';
 import { getTargets, saveTargets } from './store/targetsStore';
 import { isSameDay } from './lib/dateUtils';
@@ -19,6 +20,7 @@ export function TrackView() {
   const [targets, setTargets] = useState<TargetRange>(DEFAULT_TARGETS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
   const now = new Date();
 
   useEffect(() => {
@@ -72,6 +74,10 @@ export function TrackView() {
     );
   }
 
+  if (showHistory) {
+    return <HistoryView onBack={() => setShowHistory(false)} />;
+  }
+
   return (
     <>
       {error && <div className="banner" role="status">{error}</div>}
@@ -102,6 +108,11 @@ export function TrackView() {
       <div className="card">
         <h2>Today's readings</h2>
         <ReadingList readings={readingsToday} targets={targets} />
+        <div style={{ marginTop: 16 }}>
+          <button type="button" className="link" onClick={() => setShowHistory(true)}>
+            View historical readings
+          </button>
+        </div>
       </div>
     </>
   );

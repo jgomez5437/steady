@@ -5,14 +5,8 @@ import { getTargets } from '../tracking/store/targetsStore';
 import type { Reading, TargetRange } from '../tracking/types';
 import { DateRangeForm } from './components/DateRangeForm';
 import { PatientDetailsForm } from './components/PatientDetailsForm';
-import {
-  filterReadingsByRange,
-  computeSummary,
-  parseDateInput,
-  isValidRange,
-  isValidPatientDetails,
-  toDateInputValue,
-} from './lib/reportData';
+import { filterByRange, parseDateInput, isValidRange, toDateInputValue } from '../../shared/lib/dateRange';
+import { computeSummary, isValidPatientDetails } from './lib/reportData';
 import { buildReportPdf } from './lib/pdf';
 
 const DEFAULT_TARGETS: TargetRange = { low: 70, high: 140 };
@@ -68,7 +62,7 @@ export function ReportsView({ refreshSignal }: ReportsViewProps) {
   const start = parseDateInput(startInput);
   const end = parseDateInput(endInput);
   const rangeValid = isValidRange(start, end);
-  const readingsInRange = rangeValid ? filterReadingsByRange(readings, { start: start!, end: end! }) : [];
+  const readingsInRange = rangeValid ? filterByRange(readings, { start: start!, end: end! }) : [];
   const summary = rangeValid ? computeSummary(readingsInRange, targets) : null;
 
   function handleDownload() {

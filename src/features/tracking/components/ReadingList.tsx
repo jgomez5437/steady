@@ -12,13 +12,20 @@ const MEAL_META: Record<Reading['mealType'], { label: string; color: string }> =
 interface ReadingListProps {
   readings: Reading[];
   targets: TargetRange;
+  emptyMessage?: string;
+  showDate?: boolean;
 }
 
-export function ReadingList({ readings, targets }: ReadingListProps) {
+export function ReadingList({
+  readings,
+  targets,
+  emptyMessage = 'Nothing logged yet today.',
+  showDate = false,
+}: ReadingListProps) {
   const sorted = [...readings].sort((a, b) => b.timestamp - a.timestamp);
 
   if (!sorted.length) {
-    return <p className="sub">Nothing logged yet today.</p>;
+    return <p className="sub">{emptyMessage}</p>;
   }
 
   return (
@@ -26,9 +33,13 @@ export function ReadingList({ readings, targets }: ReadingListProps) {
       {sorted.map((r) => {
         const meta = MEAL_META[r.mealType];
         const status = computeStatus(r.value, targets);
+        const timestamp = new Date(r.timestamp);
         return (
           <li key={r.id}>
-            <span className="reading-time">{formatTime(new Date(r.timestamp))}</span>
+            <span className="reading-time">
+              {showDate && `${timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · `}
+              {formatTime(timestamp)}
+            </span>
             <span className="meal-pill">
               <span className="dot" style={{ background: meta.color }} />
               {meta.label}
