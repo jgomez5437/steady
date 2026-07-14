@@ -43,3 +43,8 @@ export async function addReading(userId: string, reading: Omit<Reading, 'id'>): 
   if (error) throw error;
   return fromRow(data);
 }
+
+export async function deleteReading(id: string): Promise<void> {
+  const { error } = await supabase.from('readings').delete().eq('id', id);
+  if (error) throw error;
+}

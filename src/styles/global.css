@@ -285,6 +285,61 @@ ul.reading-list li:last-child { border-bottom: none; }
   margin-left: 10px;
 }
 
+.reading-delete {
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-left: 4px;
+}
+.reading-delete:hover {
+  background: var(--surface-alt);
+  color: var(--high-soft);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 59, 56, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: var(--shadow);
+}
+
+.modal h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+button.primary.danger {
+  background: var(--high-soft);
+}
+
 form.recipe-form { display: flex; flex-direction: column; gap: 12px; }
 form.recipe-form textarea { resize: vertical; min-height: 60px; font-family: var(--font-body); }
 

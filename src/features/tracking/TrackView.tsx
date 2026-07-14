@@ -4,7 +4,7 @@ import { ReadingForm } from './components/ReadingForm';
 import { ReadingList } from './components/ReadingList';
 import { TargetRangeEditor } from './components/TargetRangeEditor';
 import { HistoryView } from './HistoryView';
-import { getReadings, addReading } from './store/readingsStore';
+import { getReadings, addReading, deleteReading } from './store/readingsStore';
 import { getTargets, saveTargets } from './store/targetsStore';
 import { isSameDay } from './lib/dateUtils';
 import type { Reading, TargetRange } from './types';
@@ -53,6 +53,16 @@ export function TrackView() {
       setError('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save that reading.');
+    }
+  }
+
+  async function handleDeleteReading(id: string) {
+    try {
+      await deleteReading(id);
+      setReadings((prev) => prev.filter((r) => r.id !== id));
+      setError('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not delete that reading.');
     }
   }
 
@@ -107,7 +117,7 @@ export function TrackView() {
 
       <div className="card">
         <h2>Today's readings</h2>
-        <ReadingList readings={readingsToday} targets={targets} />
+        <ReadingList readings={readingsToday} targets={targets} onDelete={handleDeleteReading} />
         <div style={{ marginTop: 16 }}>
           <button type="button" className="link" onClick={() => setShowHistory(true)}>
             View historical readings

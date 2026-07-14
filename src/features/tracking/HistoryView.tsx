@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
-import { getReadings } from './store/readingsStore';
+import { getReadings, deleteReading } from './store/readingsStore';
 import { getTargets } from './store/targetsStore';
 import type { Reading, TargetRange } from './types';
 import { ReadingList } from './components/ReadingList';
@@ -57,6 +57,16 @@ export function HistoryView({ onBack }: HistoryViewProps) {
   const rangeValid = isValidRange(start, end);
   const readingsInRange = rangeValid ? filterByRange(readings, { start: start!, end: end! }) : [];
 
+  async function handleDeleteReading(id: string) {
+    try {
+      await deleteReading(id);
+      setReadings((prev) => prev.filter((r) => r.id !== id));
+      setError('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not delete that reading.');
+    }
+  }
+
   return (
     <div className="card">
       <h2>Historical readings</h2>
@@ -85,6 +95,7 @@ export function HistoryView({ onBack }: HistoryViewProps) {
           targets={targets}
           showDate
           emptyMessage="No readings fall in this date range yet."
+          onDelete={handleDeleteReading}
         />
       )}
 
