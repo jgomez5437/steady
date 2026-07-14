@@ -102,17 +102,5 @@ export function buildReportPdf({
     });
   }
 
-  const pageCount = doc.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.setTextColor(INK_MUTED);
-    doc.text(
-      'This report is for informational purposes only and does not constitute medical advice.',
-      margin,
-      doc.internal.pageSize.getHeight() - 24,
-    );
-  }
-
   return doc;
 }
