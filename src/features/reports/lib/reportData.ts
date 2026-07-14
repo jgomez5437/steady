@@ -73,6 +73,10 @@ export function isValidRange(start: Date | null, end: Date | null): boolean {
   return start !== null && end !== null && start.getTime() <= end.getTime();
 }
 
+export function isValidPatientDetails(name: string, dob: Date | null): boolean {
+  return name.trim().length > 0 && dob !== null;
+}
+
 export function toDateInputValue(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');

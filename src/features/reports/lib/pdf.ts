@@ -12,7 +12,8 @@ const MEAL_LABELS: Record<Reading['mealType'], string> = {
 };
 
 interface BuildReportPdfParams {
-  patientEmail: string;
+  patientName: string;
+  patientDob: Date;
   range: DateRange;
   targets: TargetRange;
   readings: Reading[];
@@ -29,7 +30,14 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', { dateStyle: 'medium' });
 }
 
-export function buildReportPdf({ patientEmail, range, targets, readings, summary }: BuildReportPdfParams): jsPDF {
+export function buildReportPdf({
+  patientName,
+  patientDob,
+  range,
+  targets,
+  readings,
+  summary,
+}: BuildReportPdfParams): jsPDF {
   const doc = new jsPDF({ unit: 'pt', format: 'letter' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 48;
@@ -37,23 +45,24 @@ export function buildReportPdf({ patientEmail, range, targets, readings, summary
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(20);
   doc.setTextColor(INK);
-  doc.text('Steady — Glucose Report', margin, 56);
+  doc.text('Glucose Report', margin, 56);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(INK_MUTED);
-  doc.text(`Patient: ${patientEmail}`, margin, 76);
-  doc.text(`Period: ${formatDate(range.start)} to ${formatDate(range.end)}`, margin, 90);
-  doc.text(`Generated: ${formatDate(new Date())}`, margin, 104);
-  doc.text(`Target range: ${targets.low}–${targets.high} mg/dL`, margin, 118);
+  doc.text(`Patient: ${patientName}`, margin, 76);
+  doc.text(`Date of birth: ${formatDate(patientDob)}`, margin, 90);
+  doc.text(`Period: ${formatDate(range.start)} to ${formatDate(range.end)}`, margin, 104);
+  doc.text(`Generated: ${formatDate(new Date())}`, margin, 118);
+  doc.text(`Target range: ${targets.low}–${targets.high} mg/dL`, margin, 132);
 
   doc.setDrawColor(BORDER);
-  doc.line(margin, 132, pageWidth - margin, 132);
+  doc.line(margin, 146, pageWidth - margin, 146);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.setTextColor(INK);
-  doc.text('Summary', margin, 154);
+  doc.text('Summary', margin, 168);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
@@ -67,9 +76,9 @@ export function buildReportPdf({ patientEmail, range, targets, readings, summary
       ]
     : ['No readings were logged in this date range.'];
 
-  summaryLines.forEach((line, i) => doc.text(line, margin, 172 + i * 16));
+  summaryLines.forEach((line, i) => doc.text(line, margin, 186 + i * 16));
 
-  const tableStartY = 172 + summaryLines.length * 16 + 20;
+  const tableStartY = 186 + summaryLines.length * 16 + 20;
 
   if (readings.length) {
     autoTable(doc, {

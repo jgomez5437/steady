@@ -4,13 +4,25 @@ import { getReadings } from '../tracking/store/readingsStore';
 import { getTargets } from '../tracking/store/targetsStore';
 import type { Reading, TargetRange } from '../tracking/types';
 import { DateRangeForm } from './components/DateRangeForm';
-import { filterReadingsByRange, computeSummary, parseDateInput, isValidRange, toDateInputValue } from './lib/reportData';
+import { PatientDetailsForm } from './components/PatientDetailsForm';
+import {
+  filterReadingsByRange,
+  computeSummary,
+  parseDateInput,
+  isValidRange,
+  isValidPatientDetails,
+  toDateInputValue,
+} from './lib/reportData';
 import { buildReportPdf } from './lib/pdf';
 
 const DEFAULT_TARGETS: TargetRange = { low: 70, high: 140 };
 const DEFAULT_RANGE_DAYS = 13;
 
-export function ReportsView() {
+interface ReportsViewProps {
+  refreshSignal: number;
+}
+
+export function ReportsView({ refreshSignal }: ReportsViewProps) {
   const { session } = useAuth();
   const userId = session!.user.id;
 
@@ -24,6 +36,8 @@ export function ReportsView() {
   defaultStart.setDate(today.getDate() - DEFAULT_RANGE_DAYS);
   const todayInput = toDateInputValue(today);
 
+  const [nameInput, setNameInput] = useState('');
+  const [dobInput, setDobInput] = useState('');
   const [startInput, setStartInput] = useState(toDateInputValue(defaultStart));
   const [endInput, setEndInput] = useState(todayInput);
 
@@ -46,7 +60,10 @@ export function ReportsView() {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, refreshSignal]);
+
+  const dob = parseDateInput(dobInput);
+  const patientDetailsValid = isValidPatientDetails(nameInput, dob);
 
   const start = parseDateInput(startInput);
   const end = parseDateInput(endInput);
@@ -55,19 +72,24 @@ export function ReportsView() {
   const summary = rangeValid ? computeSummary(readingsInRange, targets) : null;
 
   function handleDownload() {
+    if (!patientDetailsValid) {
+      setError("Enter the patient's name and date of birth.");
+      return;
+    }
     if (!rangeValid || !start || !end) {
       setError('Choose a start date on or before the end date.');
       return;
     }
     setError('');
     const doc = buildReportPdf({
-      patientEmail: session!.user.email ?? 'Unknown',
+      patientName: nameInput.trim(),
+      patientDob: dob!,
       range: { start, end },
       targets,
       readings: readingsInRange,
       summary: summary!,
     });
-    doc.save(`steady-report-${startInput}-to-${endInput}.pdf`);
+    doc.save(`glucose-report-${startInput}-to-${endInput}.pdf`);
   }
 
   if (loading) {
@@ -81,7 +103,15 @@ export function ReportsView() {
   return (
     <div className="card">
       <h2>Export a report</h2>
-      <p className="sub">Choose a date range to build a PDF you can share with your care provider.</p>
+      <p className="sub">Enter patient details and a date range to build a PDF you can share with your care provider.</p>
+
+      <PatientDetailsForm
+        name={nameInput}
+        dob={dobInput}
+        maxDob={todayInput}
+        onNameChange={setNameInput}
+        onDobChange={setDobInput}
+      />
 
       <DateRangeForm
         start={startInput}
@@ -90,7 +120,7 @@ export function ReportsView() {
         onStartChange={setStartInput}
         onEndChange={setEndInput}
         onDownload={handleDownload}
-        downloadDisabled={!rangeValid}
+        downloadDisabled={!rangeValid || !patientDetailsValid}
       />
       <div className="error-msg" role="alert">{error}</div>
 

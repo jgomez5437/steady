@@ -23,11 +23,15 @@ function Brand() {
 function AppShell() {
   const [tab, setTab] = useState<TabKey>('track');
   const [reportsVisited, setReportsVisited] = useState(false);
+  const [reportsRefreshSignal, setReportsRefreshSignal] = useState(0);
   const { session, loading } = useAuth();
 
   function handleTabChange(next: TabKey) {
     setTab(next);
-    if (next === 'reports') setReportsVisited(true);
+    if (next === 'reports') {
+      setReportsVisited(true);
+      setReportsRefreshSignal((count) => count + 1);
+    }
   }
 
   if (loading) {
@@ -77,7 +81,7 @@ function AppShell() {
       <section id="view-reports" className={`view ${tab === 'reports' ? 'active' : ''}`}>
         {reportsVisited && (
           <Suspense fallback={<div className="card"><p className="sub">Loading...</p></div>}>
-            <ReportsView />
+            <ReportsView refreshSignal={reportsRefreshSignal} />
           </Suspense>
         )}
       </section>

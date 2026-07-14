@@ -5,6 +5,7 @@ import {
   computeSummary,
   parseDateInput,
   isValidRange,
+  isValidPatientDetails,
   toDateInputValue,
 } from './reportData';
 import type { Reading } from '../../tracking/types';
@@ -108,6 +109,21 @@ describe('isValidRange', () => {
   it('rejects missing dates', () => {
     expect(isValidRange(null, new Date())).toBe(false);
     expect(isValidRange(new Date(), null)).toBe(false);
+  });
+});
+
+describe('isValidPatientDetails', () => {
+  it('accepts a non-empty name with a parsed dob', () => {
+    expect(isValidPatientDetails('Jamie Rivera', new Date(1990, 0, 1))).toBe(true);
+  });
+
+  it('rejects a blank or whitespace-only name', () => {
+    expect(isValidPatientDetails('', new Date(1990, 0, 1))).toBe(false);
+    expect(isValidPatientDetails('   ', new Date(1990, 0, 1))).toBe(false);
+  });
+
+  it('rejects a missing dob', () => {
+    expect(isValidPatientDetails('Jamie Rivera', null)).toBe(false);
   });
 });
 
