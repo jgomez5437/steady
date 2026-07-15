@@ -6,6 +6,7 @@ interface DateRangeFormProps {
   maxDate: string;
   onStartChange: (value: string) => void;
   onEndChange: (value: string) => void;
+  onPastWeek: () => void;
   onDownload: () => void;
   downloadDisabled: boolean;
 }
@@ -16,6 +17,7 @@ export function DateRangeForm({
   maxDate,
   onStartChange,
   onEndChange,
+  onPastWeek,
   onDownload,
   downloadDisabled,
 }: DateRangeFormProps) {
@@ -31,6 +33,11 @@ export function DateRangeForm({
         endId="reportEnd"
       />
       <div className="field">
+        <button type="button" className="chip" onClick={onPastWeek}>
+          Past 7 Days
+        </button>
+      </div>
+      <div className="download-row">
         <button type="button" className="primary" onClick={onDownload} disabled={downloadDisabled}>
           Download PDF
         </button>

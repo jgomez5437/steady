@@ -13,6 +13,6 @@ export function yesterdayRange(today: Date): QuickRangeInputs {
 
 export function pastDaysRange(today: Date, days: number): QuickRangeInputs {
   const start = new Date(today);
-  start.setDate(today.getDate() - (days - 1));
+  start.setDate(today.getDate() - days);
   return { start: toDateInputValue(start), end: toDateInputValue(today) };
 }
