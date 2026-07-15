@@ -6,6 +6,8 @@ import type { Reading, TargetRange } from './types';
 import { ReadingList } from './components/ReadingList';
 import { DateRangeFields } from '../../shared/components/DateRangeFields';
 import { filterByRange, parseDateInput, isValidRange, toDateInputValue } from '../../shared/lib/dateRange';
+import { yesterdayRange, pastDaysRange } from './lib/quickRanges';
+import { computeSummary } from './lib/summary';
 
 const DEFAULT_TARGETS: TargetRange = { low: 70, high: 140 };
 const DEFAULT_RANGE_DAYS = 13;
@@ -56,6 +58,12 @@ export function HistoryView({ onBack }: HistoryViewProps) {
   const end = parseDateInput(endInput);
   const rangeValid = isValidRange(start, end);
   const readingsInRange = rangeValid ? filterByRange(readings, { start: start!, end: end! }) : [];
+  const summary = rangeValid ? computeSummary(readingsInRange, targets) : null;
+
+  function applyQuickRange(range: { start: string; end: string }) {
+    setStartInput(range.start);
+    setEndInput(range.end);
+  }
 
   async function handleDeleteReading(id: string) {
     try {
@@ -83,9 +91,29 @@ export function HistoryView({ onBack }: HistoryViewProps) {
           endId="historyEnd"
         />
       </form>
+
+      <div className="chip-row">
+        <button type="button" className="chip" onClick={() => applyQuickRange(yesterdayRange(today))}>
+          Yesterday
+        </button>
+        <button type="button" className="chip" onClick={() => applyQuickRange(pastDaysRange(today, 7))}>
+          Past week
+        </button>
+        <button type="button" className="chip" onClick={() => applyQuickRange(pastDaysRange(today, 14))}>
+          Past 2 weeks
+        </button>
+      </div>
+
       <div className="error-msg" role="alert">
         {!rangeValid ? 'Choose a start date on or before the end date.' : error}
       </div>
+
+      {summary && summary.count > 0 && (
+        <p className="sub">
+          <strong>{summary.average} mg/dL</strong> average across {summary.count} reading
+          {summary.count === 1 ? '' : 's'} ({summary.inRangePercent}% in range).
+        </p>
+      )}
 
       {loading ? (
         <p className="sub">Loading...</p>
