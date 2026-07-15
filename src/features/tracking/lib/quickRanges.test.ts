@@ -14,18 +14,18 @@ describe('yesterdayRange', () => {
 });
 
 describe('pastDaysRange', () => {
-  it('spans 7 days ending on today for a week', () => {
+  it('starts exactly 7 days back (same weekday as today) for a week', () => {
     const today = new Date(2026, 6, 15);
-    expect(pastDaysRange(today, 7)).toEqual({ start: '2026-07-09', end: '2026-07-15' });
+    expect(pastDaysRange(today, 7)).toEqual({ start: '2026-07-08', end: '2026-07-15' });
   });
 
-  it('spans 14 days ending on today for two weeks', () => {
+  it('starts exactly 14 days back (same weekday as today) for two weeks', () => {
     const today = new Date(2026, 6, 15);
-    expect(pastDaysRange(today, 14)).toEqual({ start: '2026-07-02', end: '2026-07-15' });
+    expect(pastDaysRange(today, 14)).toEqual({ start: '2026-07-01', end: '2026-07-15' });
   });
 
   it('rolls back across a year boundary', () => {
     const today = new Date(2026, 0, 3);
-    expect(pastDaysRange(today, 7)).toEqual({ start: '2025-12-28', end: '2026-01-03' });
+    expect(pastDaysRange(today, 7)).toEqual({ start: '2025-12-27', end: '2026-01-03' });
   });
 });

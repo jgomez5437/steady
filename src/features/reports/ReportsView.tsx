@@ -7,7 +7,9 @@ import { DateRangeForm } from './components/DateRangeForm';
 import { PatientDetailsForm } from './components/PatientDetailsForm';
 import { filterByRange, parseDateInput, isValidRange, toDateInputValue } from '../../shared/lib/dateRange';
 import { computeSummary } from '../tracking/lib/summary';
+import { pastDaysRange } from '../tracking/lib/quickRanges';
 import { isValidPatientDetails } from './lib/reportData';
+import { loadPatientProfile, savePatientProfile, clearPatientProfile } from './lib/patientProfileStorage';
 import { buildReportPdf } from './lib/pdf';
 
 const DEFAULT_TARGETS: TargetRange = { low: 70, high: 140 };
@@ -31,8 +33,13 @@ export function ReportsView({ refreshSignal }: ReportsViewProps) {
   defaultStart.setDate(today.getDate() - DEFAULT_RANGE_DAYS);
   const todayInput = toDateInputValue(today);
 
-  const [nameInput, setNameInput] = useState('');
-  const [dobInput, setDobInput] = useState('');
+  // Lazy init (not an effect) so a saved profile appears on first paint with no empty-field flash.
+  // Relies on App.tsx unmounting this view on sign-out, so a fresh mount always re-reads for the
+  // current session's userId rather than carrying over a previous account's loaded profile.
+  const [savedProfile] = useState(() => loadPatientProfile(userId));
+  const [nameInput, setNameInput] = useState(savedProfile?.name ?? '');
+  const [dobInput, setDobInput] = useState(savedProfile?.dob ?? '');
+  const [rememberDetails, setRememberDetails] = useState(savedProfile !== null);
   const [startInput, setStartInput] = useState(toDateInputValue(defaultStart));
   const [endInput, setEndInput] = useState(todayInput);
 
@@ -57,6 +64,16 @@ export function ReportsView({ refreshSignal }: ReportsViewProps) {
     };
   }, [userId, refreshSignal]);
 
+  useEffect(() => {
+    if (!rememberDetails) return;
+    savePatientProfile(userId, { name: nameInput, dob: dobInput });
+  }, [rememberDetails, userId, nameInput, dobInput]);
+
+  function handleRememberDetailsChange(checked: boolean) {
+    setRememberDetails(checked);
+    if (!checked) clearPatientProfile(userId);
+  }
+
   const dob = parseDateInput(dobInput);
   const patientDetailsValid = isValidPatientDetails(nameInput, dob);
 
@@ -65,6 +82,12 @@ export function ReportsView({ refreshSignal }: ReportsViewProps) {
   const rangeValid = isValidRange(start, end);
   const readingsInRange = rangeValid ? filterByRange(readings, { start: start!, end: end! }) : [];
   const summary = rangeValid ? computeSummary(readingsInRange, targets) : null;
+
+  function handlePastWeek() {
+    const range = pastDaysRange(today, 7);
+    setStartInput(range.start);
+    setEndInput(range.end);
+  }
 
   function handleDownload() {
     if (!patientDetailsValid) {
@@ -104,8 +127,10 @@ export function ReportsView({ refreshSignal }: ReportsViewProps) {
         name={nameInput}
         dob={dobInput}
         maxDob={todayInput}
+        rememberDetails={rememberDetails}
         onNameChange={setNameInput}
         onDobChange={setDobInput}
+        onRememberDetailsChange={handleRememberDetailsChange}
       />
 
       <DateRangeForm
@@ -114,6 +139,7 @@ export function ReportsView({ refreshSignal }: ReportsViewProps) {
         maxDate={todayInput}
         onStartChange={setStartInput}
         onEndChange={setEndInput}
+        onPastWeek={handlePastWeek}
         onDownload={handleDownload}
         downloadDisabled={!rangeValid || !patientDetailsValid}
       />
