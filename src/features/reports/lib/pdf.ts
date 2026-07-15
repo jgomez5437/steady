@@ -3,7 +3,7 @@ import { autoTable } from 'jspdf-autotable';
 import type { Reading, TargetRange } from '../../tracking/types';
 import { formatTime } from '../../tracking/lib/dateUtils';
 import type { DateRange } from '../../../shared/lib/dateRange';
-import type { ReportSummary } from './reportData';
+import type { ReadingsSummary } from '../../tracking/lib/summary';
 
 const MEAL_LABELS: Record<Reading['mealType'], string> = {
   fasting: 'Fasting',
@@ -18,7 +18,7 @@ interface BuildReportPdfParams {
   range: DateRange;
   targets: TargetRange;
   readings: Reading[];
-  summary: ReportSummary;
+  summary: ReadingsSummary;
 }
 
 const INK = '#2B3B38';

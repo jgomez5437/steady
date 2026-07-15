@@ -6,7 +6,8 @@ import type { Reading, TargetRange } from '../tracking/types';
 import { DateRangeForm } from './components/DateRangeForm';
 import { PatientDetailsForm } from './components/PatientDetailsForm';
 import { filterByRange, parseDateInput, isValidRange, toDateInputValue } from '../../shared/lib/dateRange';
-import { computeSummary, isValidPatientDetails } from './lib/reportData';
+import { computeSummary } from '../tracking/lib/summary';
+import { isValidPatientDetails } from './lib/reportData';
 import { buildReportPdf } from './lib/pdf';
 
 const DEFAULT_TARGETS: TargetRange = { low: 70, high: 140 };
