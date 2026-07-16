@@ -9,6 +9,7 @@ import { getTargets, saveTargets } from './store/targetsStore';
 import { isSameDay } from './lib/dateUtils';
 import type { Reading, TargetRange } from './types';
 import { useAuth } from '../auth/AuthProvider';
+import { useRefetchOnVisible } from '../../shared/lib/useRefetchOnVisible';
 
 const DEFAULT_TARGETS: TargetRange = { low: 70, high: 140 };
 
@@ -43,6 +44,18 @@ export function TrackView() {
       cancelled = true;
     };
   }, [userId]);
+
+  useRefetchOnVisible(() => {
+    Promise.all([getReadings(userId), getTargets(userId)])
+      .then(([r, t]) => {
+        setReadings(r);
+        setTargets(t);
+        setError('');
+      })
+      .catch((e: unknown) => {
+        setError(e instanceof Error ? e.message : 'Could not load your data.');
+      });
+  });
 
   const readingsToday = readings.filter((r) => isSameDay(r.timestamp, now));
 

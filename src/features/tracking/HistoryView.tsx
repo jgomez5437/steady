@@ -8,6 +8,7 @@ import { DateRangeFields } from '../../shared/components/DateRangeFields';
 import { filterByRange, parseDateInput, isValidRange, toDateInputValue } from '../../shared/lib/dateRange';
 import { yesterdayRange, pastDaysRange } from './lib/quickRanges';
 import { computeSummary } from './lib/summary';
+import { useRefetchOnVisible } from '../../shared/lib/useRefetchOnVisible';
 
 const DEFAULT_TARGETS: TargetRange = { low: 70, high: 140 };
 const DEFAULT_RANGE_DAYS = 13;
@@ -53,6 +54,18 @@ export function HistoryView({ onBack }: HistoryViewProps) {
       cancelled = true;
     };
   }, [userId]);
+
+  useRefetchOnVisible(() => {
+    Promise.all([getReadings(userId), getTargets(userId)])
+      .then(([r, t]) => {
+        setReadings(r);
+        setTargets(t);
+        setError('');
+      })
+      .catch((e: unknown) => {
+        setError(e instanceof Error ? e.message : 'Could not load your readings.');
+      });
+  });
 
   const start = parseDateInput(startInput);
   const end = parseDateInput(endInput);

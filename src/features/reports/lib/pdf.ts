@@ -1,9 +1,10 @@
 import { jsPDF } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
 import type { Reading, TargetRange } from '../../tracking/types';
-import { formatTime } from '../../tracking/lib/dateUtils';
+import { formatCompactTime } from '../../tracking/lib/dateUtils';
 import type { DateRange } from '../../../shared/lib/dateRange';
 import type { ReadingsSummary } from '../../tracking/lib/summary';
+import { groupReadingsByDay, formatSlashDate } from './reportData';
 
 const MEAL_LABELS: Record<Reading['mealType'], string> = {
   fasting: 'Fasting',
@@ -29,6 +30,12 @@ const ROW_TINT: [number, number, number] = [238, 242, 240];
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', { dateStyle: 'medium' });
+}
+
+function formatDayLine(readings: Reading[]): string {
+  return readings
+    .map((r) => `${MEAL_LABELS[r.mealType]} (${formatCompactTime(new Date(r.timestamp))}): ${r.value}`)
+    .join('     ');
 }
 
 export function buildReportPdf({
@@ -81,24 +88,17 @@ export function buildReportPdf({
 
   const tableStartY = 186 + summaryLines.length * 16 + 20;
 
-  if (readings.length) {
+  const dayGroups = groupReadingsByDay(readings);
+
+  if (dayGroups.length) {
     autoTable(doc, {
       startY: tableStartY,
       margin: { left: margin, right: margin },
-      head: [['Date', 'Time', 'Meal', 'Reading (mg/dL)', 'Status']],
-      body: readings.map((r) => {
-        const d = new Date(r.timestamp);
-        const status = r.value < targets.low ? 'Low' : r.value > targets.high ? 'High' : 'In range';
-        return [
-          d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-          formatTime(d),
-          MEAL_LABELS[r.mealType],
-          String(r.value),
-          status,
-        ];
-      }),
+      head: [['Date', 'Readings']],
+      body: dayGroups.map((group) => [formatSlashDate(new Date(group.timestamp)), formatDayLine(group.readings)]),
       headStyles: { fillColor: TEAL, textColor: 255, fontStyle: 'bold' },
-      styles: { fontSize: 9, textColor: [43, 59, 56] },
+      styles: { fontSize: 9, textColor: [43, 59, 56], valign: 'top' },
+      columnStyles: { 0: { cellWidth: 80 } },
       alternateRowStyles: { fillColor: ROW_TINT },
     });
   }
