@@ -10,3 +10,9 @@ export function isSameDay(timestamp: number, reference: Date): boolean {
 export function formatTime(date: Date): string {
   return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
+
+export function formatCompactTime(date: Date): string {
+  return date.getMinutes() === 0
+    ? date.toLocaleTimeString('en-US', { hour: 'numeric' })
+    : date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
