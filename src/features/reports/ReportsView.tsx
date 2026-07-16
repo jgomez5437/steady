@@ -11,6 +11,7 @@ import { pastDaysRange } from '../tracking/lib/quickRanges';
 import { isValidPatientDetails } from './lib/reportData';
 import { loadPatientProfile, savePatientProfile, clearPatientProfile } from './lib/patientProfileStorage';
 import { buildReportPdf } from './lib/pdf';
+import { useRefetchOnVisible } from '../../shared/lib/useRefetchOnVisible';
 
 const DEFAULT_TARGETS: TargetRange = { low: 70, high: 140 };
 const DEFAULT_RANGE_DAYS = 13;
@@ -68,6 +69,18 @@ export function ReportsView({ refreshSignal }: ReportsViewProps) {
     if (!rememberDetails) return;
     savePatientProfile(userId, { name: nameInput, dob: dobInput });
   }, [rememberDetails, userId, nameInput, dobInput]);
+
+  useRefetchOnVisible(() => {
+    Promise.all([getReadings(userId), getTargets(userId)])
+      .then(([r, t]) => {
+        setReadings(r);
+        setTargets(t);
+        setError('');
+      })
+      .catch((e: unknown) => {
+        setError(e instanceof Error ? e.message : 'Could not load your data.');
+      });
+  });
 
   function handleRememberDetailsChange(checked: boolean) {
     setRememberDetails(checked);
